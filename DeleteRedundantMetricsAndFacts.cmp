@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<PROCEDURE_DEFINITION>
+<DESCRIPTION/>
+<CODE>ResultSet metrics = executeCapture("LIST ALL METRICS FOR PROJECT \""+projectName+"\";");&#13;
+&#13;
+int totalMetrics =metrics.getRowCount();&#13;
+&#13;
+int metricCounter = 0;&#13;
+int metricDeletedCounter = 0;&#13;
+&#13;
+metrics.moveFirst();&#13;
+&#13;
+while (!metrics.isEof()) {&#13;
+    metricCounter++;&#13;
+    String folder = metrics.getResultCell(PATH).getValueString();&#13;
+    String name = metrics.getResultCell(NAME).getValueString();&#13;
+    printOut("Scanning metric " + metricCounter + " of " + totalMetrics);&#13;
+        ResultSet dependents = executeCapture("LIST ALL DEPENDENTS FOR METRIC \""+name+"\" IN FOLDER \""+folder+"\" IN PROJECT \""+projectName+"\";");&#13;
+        if (dependents.getRowCount() == 0) {&#13;
+            metricDeletedCounter++;&#13;
+            printOut("...and it has no dependents. Gone.");&#13;
+            execute("DELETE METRIC \""+name+"\" IN FOLDER \""+folder+"\" FROM PROJECT \""+projectName+"\";");&#13;
+        } else {&#13;
+        printOut("...but something's using it, so it lives.");&#13;
+        }&#13;
+    metrics.moveNext();&#13;
+}&#13;
+printOut("Metrics scanned: " + metricCounter);&#13;
+printOut("Metrics deleted: " + metricDeletedCounter);&#13;
+&#13;
+</CODE>
+<SAMPLE>EXECUTE PROCEDURE DeleteHiddenRedundantReports("Your project name here");</SAMPLE>
+<VERSION>1.0</VERSION>
+<TYPE>CUSTOM</TYPE>
+<INPUT_PARAMS>
+<INPUT INPUT_TYPE="STRING">projectName</INPUT>
+</INPUT_PARAMS>
+<CLASSPATH/>
+<TEST_INPUT>
+<TEST_INPUT_PARAM>ASOS Reporting - duplicate from production 2014-02-03 am</TEST_INPUT_PARAM>
+</TEST_INPUT>
+<TEST_CONNECTION_INFO>
+<TEST_PSN_NAME>3. ASNAV-DAPP-22A (Standard Auth)</TEST_PSN_NAME>
+<TEST_USERNAME>administrator</TEST_USERNAME>
+<TEST_PASSWORD>00000000939b45f5666db053e958879692754932e3b455f54a797bf36e946eeba47da7f25d698176b4fc4c77d5b77ded</TEST_PASSWORD>
+</TEST_CONNECTION_INFO>
+</PROCEDURE_DEFINITION>
